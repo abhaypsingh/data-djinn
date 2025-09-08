@@ -1,7 +1,7 @@
 "use client";
 
 import { useAppStore } from '@/store/app-store';
-import { FileUpload } from '@/components/FileUpload';
+import { FileUploadEnhanced } from '@/components/FileUploadEnhanced';
 import { VerticalSelector } from '@/components/VerticalSelector';
 import { DataAnalysis } from '@/components/DataAnalysis';
 import { DatasetRecommendations } from '@/components/DatasetRecommendations';
@@ -11,9 +11,9 @@ export default function Home() {
   const { currentStep } = useAppStore();
 
   return (
-    <main className="min-h-screen bg-background p-8">
+    <main className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-8">
       <div className="container mx-auto">
-        {currentStep === 'upload' && <FileUpload />}
+        {currentStep === 'upload' && <FileUploadEnhanced />}
         {currentStep === 'vertical' && <VerticalSelector />}
         {currentStep === 'analysis' && <DataAnalysis />}
         {currentStep === 'recommend' && <DatasetRecommendations />}

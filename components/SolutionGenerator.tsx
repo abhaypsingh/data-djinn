@@ -49,6 +49,37 @@ export function SolutionGenerator() {
       
       setSolution(generatedSolution);
       
+      // Save to database
+      try {
+        const analysisData = {
+          verticalId: selectedVertical.id,
+          primaryDatasetName: primaryDataset.name,
+          analysisResult: primaryDataset.analysisResult || '',
+          recommendations: additionalDatasetDescriptions,
+          solution: generatedSolution,
+          metadata: {
+            problemStatement,
+            datasetsCount: additionalDatasets.length + 1,
+            vertical: selectedVertical.name,
+          }
+        };
+        
+        const saveResponse = await fetch('/api/analysis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(analysisData),
+        });
+        
+        if (saveResponse.ok) {
+          toast({
+            title: "✅ Solution saved",
+            description: "Your analysis has been saved to the dashboard",
+          });
+        }
+      } catch (saveError) {
+        console.error('Error saving analysis:', saveError);
+      }
+      
       toast({
         title: "Solution generated",
         description: "Your comprehensive solution has been created",
