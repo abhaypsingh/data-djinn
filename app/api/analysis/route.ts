@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
-const sql = neon(process.env.DATABASE_URL!);
+// Make database optional - app works without it
+const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 
 export async function POST(request: NextRequest) {
+  if (!sql) {
+    return NextResponse.json(
+      { 
+        error: 'Database not configured',
+        message: 'Data persistence is not available. The app will work but analyses won\'t be saved.'
+      },
+      { status: 503 }
+    );
+  }
+
   try {
     const data = await request.json();
     const { 
@@ -53,6 +64,15 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  if (!sql) {
+    return NextResponse.json({
+      success: true,
+      data: [],
+      total: 0,
+      message: 'Database not configured. No saved analyses available.'
+    });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '10');

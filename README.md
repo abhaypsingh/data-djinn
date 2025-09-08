@@ -32,8 +32,8 @@ An AI-powered data analysis platform that helps non-technical users understand t
 
 - Node.js 18+ 
 - npm or yarn
-- Neon account (for database)
 - Netlify account (for deployment)
+- Neon account (optional - for data persistence)
 
 ### Local Development
 
@@ -47,19 +47,19 @@ cd data-djinn
 npm install
 ```
 
-3. Set up environment variables:
+3. Set up environment variables (optional):
 ```bash
 cp .env.example .env.local
 ```
 
-Edit `.env.local` and add your Neon database URL:
+If you want data persistence, edit `.env.local` and add your Neon database URL:
 ```
 DATABASE_URL="postgresql://username:password@ep-example.region.aws.neon.tech/dbname?sslmode=require"
 ```
 
-4. Set up the database:
+4. Set up the database (optional):
    - Create a new database in Neon
-   - Run the schema SQL from `lib/database/schema.sql`
+   - Run: `npm run migrate`
 
 5. Start the development server:
 ```bash
@@ -74,10 +74,12 @@ Open [http://localhost:3000](http://localhost:3000) to see the application.
 
 2. Connect your GitHub repository to Netlify
 
-3. Configure environment variables in Netlify:
-   - `DATABASE_URL`: Your Neon database connection string
+3. Configure environment variables in Netlify (optional):
+   - `DATABASE_URL`: Your Neon database connection string (only if you want data persistence)
 
 4. Deploy! Netlify will automatically build and deploy your application
+
+**Note**: The app works perfectly without a database. Adding DATABASE_URL enables saving analyses for later viewing.
 
 ## Usage Flow
 
