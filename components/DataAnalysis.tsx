@@ -20,6 +20,9 @@ export function DataAnalysis() {
     llmInitialized,
     llmLoadingProgress,
     analysisResults,
+    setAnalysisId,
+    sessionId,
+    setSessionId,
   } = useAppStore();
   
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -63,6 +66,24 @@ export function DataAnalysis() {
     
     setIsAnalyzing(true);
     try {
+      // Create or update session
+      if (!sessionId) {
+        const sessionResponse = await fetch('/api/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            verticalId: selectedVertical.id,
+            step: 'analysis',
+            metadata: { datasetName: primaryDataset.name }
+          }),
+        });
+        
+        if (sessionResponse.ok) {
+          const sessionData = await sessionResponse.json();
+          setSessionId(sessionData.data.session_id);
+        }
+      }
+      
       const result = await analyzeData(
         primaryDataset.preview,
         selectedVertical.name,
@@ -75,6 +96,53 @@ export function DataAnalysis() {
       const datasets = extractSuggestedDatasets(result);
       setSuggestedDatasets(datasets);
       setRecommendations(datasets);
+      
+      // Save analysis to database
+      try {
+        const analysisData = {
+          verticalId: selectedVertical.id,
+          primaryDatasetName: primaryDataset.name,
+          analysisResult: result,
+          recommendations: datasets,
+          solution: null,
+          metadata: {
+            sessionId,
+            datasetInfo: {
+              format: primaryDataset.data.format,
+              rowCount: primaryDataset.data.rowCount,
+              columnCount: primaryDataset.data.columnCount,
+            }
+          }
+        };
+        
+        const saveResponse = await fetch('/api/analysis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(analysisData),
+        });
+        
+        if (saveResponse.ok) {
+          const saveData = await saveResponse.json();
+          setAnalysisId(saveData.data.id);
+          
+          // Save dataset metadata
+          await fetch('/api/dataset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              analysisId: saveData.data.id,
+              name: primaryDataset.name,
+              type: 'primary',
+              format: primaryDataset.data.format,
+              rowCount: primaryDataset.data.rowCount,
+              columnCount: primaryDataset.data.columnCount,
+              preview: primaryDataset.preview.substring(0, 1000),
+            }),
+          });
+        }
+      } catch (saveError) {
+        console.error('Error saving analysis:', saveError);
+      }
       
     } catch (error) {
       toast({

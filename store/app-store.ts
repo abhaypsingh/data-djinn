@@ -23,6 +23,8 @@ export interface AppState {
   isProcessing: boolean;
   llmInitialized: boolean;
   llmLoadingProgress: number;
+  sessionId: string | null;
+  analysisId: number | null;
   
   setStep: (step: AppState['currentStep']) => void;
   setSelectedVertical: (vertical: Vertical) => void;
@@ -35,6 +37,8 @@ export interface AppState {
   setProcessing: (isProcessing: boolean) => void;
   setLLMInitialized: (initialized: boolean) => void;
   setLLMLoadingProgress: (progress: number) => void;
+  setSessionId: (sessionId: string) => void;
+  setAnalysisId: (analysisId: number) => void;
   reset: () => void;
 }
 
@@ -49,6 +53,8 @@ export const useAppStore = create<AppState>((set) => ({
   isProcessing: false,
   llmInitialized: false,
   llmLoadingProgress: 0,
+  sessionId: null,
+  analysisId: null,
 
   setStep: (step) => set({ currentStep: step }),
   
@@ -82,6 +88,10 @@ export const useAppStore = create<AppState>((set) => ({
   setLLMInitialized: (initialized) => set({ llmInitialized: initialized }),
   
   setLLMLoadingProgress: (progress) => set({ llmLoadingProgress: progress }),
+  
+  setSessionId: (sessionId) => set({ sessionId }),
+  
+  setAnalysisId: (analysisId) => set({ analysisId }),
   
   reset: () => set({
     currentStep: 'upload',

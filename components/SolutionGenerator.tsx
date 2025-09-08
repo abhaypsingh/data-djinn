@@ -17,6 +17,8 @@ export function SolutionGenerator() {
     setSolution,
     setStep,
     reset,
+    analysisId,
+    sessionId,
   } = useAppStore();
   
   const [isGenerating, setIsGenerating] = useState(false);
@@ -49,31 +51,87 @@ export function SolutionGenerator() {
       
       setSolution(generatedSolution);
       
-      // Save to database
+      // Update existing analysis or create new one
       try {
-        const analysisData = {
-          verticalId: selectedVertical.id,
-          primaryDatasetName: primaryDataset.name,
-          analysisResult: primaryDataset.analysisResult || '',
-          recommendations: additionalDatasetDescriptions,
-          solution: generatedSolution,
-          metadata: {
-            problemStatement,
-            datasetsCount: additionalDatasets.length + 1,
-            vertical: selectedVertical.name,
+        if (analysisId) {
+          // Update existing analysis with solution
+          const updateResponse = await fetch(`/api/analysis/${analysisId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              solution: generatedSolution,
+              metadata: {
+                problemStatement,
+                datasetsCount: additionalDatasets.length + 1,
+                vertical: selectedVertical.name,
+                sessionId,
+              }
+            }),
+          });
+          
+          if (updateResponse.ok) {
+            toast({
+              title: "✅ Solution saved",
+              description: "Your analysis has been updated with the solution",
+            });
           }
-        };
+          
+          // Save additional datasets
+          for (const dataset of additionalDatasets) {
+            await fetch('/api/dataset', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                analysisId,
+                name: dataset.name,
+                type: 'additional',
+                format: dataset.data.format,
+                rowCount: dataset.data.rowCount,
+                columnCount: dataset.data.columnCount,
+                preview: dataset.preview.substring(0, 1000),
+              }),
+            });
+          }
+        } else {
+          // Create new analysis if no ID exists
+          const analysisData = {
+            verticalId: selectedVertical.id,
+            primaryDatasetName: primaryDataset.name,
+            analysisResult: primaryDataset.analysisResult || '',
+            recommendations: additionalDatasetDescriptions,
+            solution: generatedSolution,
+            metadata: {
+              problemStatement,
+              datasetsCount: additionalDatasets.length + 1,
+              vertical: selectedVertical.name,
+              sessionId,
+            }
+          };
+          
+          const saveResponse = await fetch('/api/analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(analysisData),
+          });
+          
+          if (saveResponse.ok) {
+            toast({
+              title: "✅ Solution saved",
+              description: "Your analysis has been saved to the dashboard",
+            });
+          }
+        }
         
-        const saveResponse = await fetch('/api/analysis', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(analysisData),
-        });
-        
-        if (saveResponse.ok) {
-          toast({
-            title: "✅ Solution saved",
-            description: "Your analysis has been saved to the dashboard",
+        // Update session
+        if (sessionId) {
+          await fetch('/api/session', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sessionId,
+              step: 'solution',
+              metadata: { solutionGenerated: true }
+            }),
           });
         }
       } catch (saveError) {
