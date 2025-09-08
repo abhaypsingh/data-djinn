@@ -10,6 +10,17 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'Data Djinn - AI-Powered Industry Data Analysis',
   description: 'Transform your data into industry-specific insights with AI',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Data Djinn',
+  },
 }
 
 export default function RootLayout({
