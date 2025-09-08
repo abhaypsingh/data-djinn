@@ -9,10 +9,10 @@ export async function initializeWebLLM(
 ): Promise<webllm.MLCEngine> {
   if (engine) return engine;
 
-  engine = new webllm.MLCEngine();
+  const initProgressCallback = onProgress || (() => {});
   
-  await engine.reload(MODEL_NAME, {
-    initProgressCallback: onProgress
+  engine = await webllm.CreateMLCEngine(MODEL_NAME, {
+    initProgressCallback: initProgressCallback
   });
 
   return engine;
